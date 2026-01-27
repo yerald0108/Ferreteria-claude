@@ -1,18 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useCartStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateOrder } from '@/hooks/useOrders';
+import { useUserProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { CheckoutProgress } from '@/components/checkout/CheckoutProgress';
 import { StepContactInfo } from '@/components/checkout/StepContactInfo';
 import { StepDelivery } from '@/components/checkout/StepDelivery';
 import { StepPayment } from '@/components/checkout/StepPayment';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const STEPS = [
   { number: 1, title: 'Contacto', description: 'Tus datos' },
@@ -23,10 +26,13 @@ const STEPS = [
 const Checkout = () => {
   const { items, getTotalPrice, clearCart } = useCartStore();
   const { user, loading: authLoading } = useAuth();
+  const { data: profile, isLoading: profileLoading } = useUserProfile();
+  const updateProfile = useUpdateProfile();
   const createOrder = useCreateOrder();
   const navigate = useNavigate();
   
   const [currentStep, setCurrentStep] = useState(1);
+  const [saveToProfile, setSaveToProfile] = useState(true);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -37,6 +43,25 @@ const Checkout = () => {
     paymentMethod: 'efectivo',
     notes: '',
   });
+
+  // Auto-fill form with profile data when loaded
+  useEffect(() => {
+    if (profile) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: profile.full_name || prev.fullName,
+        phone: profile.phone || prev.phone,
+        email: profile.email || user?.email || prev.email,
+        address: profile.address || prev.address,
+        municipality: profile.municipality || prev.municipality,
+      }));
+    } else if (user?.email) {
+      setFormData((prev) => ({
+        ...prev,
+        email: user.email || prev.email,
+      }));
+    }
+  }, [profile, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -139,6 +164,22 @@ const Checkout = () => {
 
       const orderData = await createOrder.mutateAsync({ order, items: orderItems });
 
+      // Save profile data if checkbox is checked
+      if (saveToProfile) {
+        try {
+          await updateProfile.mutateAsync({
+            full_name: formData.fullName,
+            phone: formData.phone,
+            email: formData.email,
+            address: formData.address,
+            municipality: formData.municipality,
+          });
+        } catch (profileError) {
+          // Don't fail the order if profile save fails
+          console.error('Error saving profile:', profileError);
+        }
+      }
+
       toast.success('¡Pedido realizado con éxito!');
       clearCart();
       
@@ -149,7 +190,7 @@ const Checkout = () => {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -226,10 +267,24 @@ const Checkout = () => {
         );
       case 3:
         return (
-          <StepPayment
-            paymentMethod={formData.paymentMethod}
-            onPaymentChange={(value) => handleSelectChange('paymentMethod', value)}
-          />
+          <div className="space-y-6">
+            <StepPayment
+              paymentMethod={formData.paymentMethod}
+              onPaymentChange={(value) => handleSelectChange('paymentMethod', value)}
+            />
+            
+            <div className="flex items-center space-x-3 p-4 bg-muted/50 rounded-lg border">
+              <Checkbox
+                id="saveProfile"
+                checked={saveToProfile}
+                onCheckedChange={(checked) => setSaveToProfile(checked === true)}
+              />
+              <Label htmlFor="saveProfile" className="text-sm cursor-pointer flex items-center gap-2">
+                <Save className="h-4 w-4 text-muted-foreground" />
+                Guardar mis datos para futuros pedidos
+              </Label>
+            </div>
+          </div>
         );
       default:
         return null;

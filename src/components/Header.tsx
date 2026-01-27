@@ -1,4 +1,4 @@
-import { ShoppingCart, User, Menu, Wrench, X, LogOut, Shield } from 'lucide-react';
+import { ShoppingCart, User, Menu, Wrench, X, LogOut, Shield, Package, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -91,6 +91,18 @@ export function Header() {
                     {user.email}
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/perfil" className="flex items-center gap-2">
+                      <UserCircle className="h-4 w-4" />
+                      Mi Perfil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/mis-pedidos" className="flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      Mis Pedidos
+                    </Link>
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <>
                       <DropdownMenuItem asChild>
@@ -99,9 +111,9 @@ export function Header() {
                           Panel Admin
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                     </>
                   )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                     <LogOut className="h-4 w-4 mr-2" />
                     Cerrar Sesión
@@ -145,6 +157,26 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              {user && (
+                <>
+                  <Link
+                    to="/perfil"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:bg-muted flex items-center gap-2"
+                  >
+                    <UserCircle className="h-4 w-4" />
+                    Mi Perfil
+                  </Link>
+                  <Link
+                    to="/mis-pedidos"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:bg-muted flex items-center gap-2"
+                  >
+                    <Package className="h-4 w-4" />
+                    Mis Pedidos
+                  </Link>
+                </>
+              )}
               {isAdmin && (
                 <Link
                   to="/admin"
