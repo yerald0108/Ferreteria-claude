@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, DollarSign, ShoppingCart, Users, Package, Clock } from 'lucide-react';
+import { Loader2, DollarSign, ShoppingCart, Users, Package, Clock, AlertTriangle } from 'lucide-react';
 import { useAdminStats } from '@/hooks/useAdminStats';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Badge } from '@/components/ui/badge';
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendiente',
@@ -100,6 +101,12 @@ export function AdminDashboard() {
             <p className="text-xs text-muted-foreground">
               En catálogo
             </p>
+            {stats.lowStockProducts.length > 0 && (
+              <Badge variant="destructive" className="mt-2">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                {stats.lowStockProducts.length} con stock bajo
+              </Badge>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -215,6 +222,44 @@ export function AdminDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Low Stock Alert */}
+      {stats.lowStockProducts.length > 0 && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Alerta de Stock Bajo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {stats.lowStockProducts.map((product) => (
+                <div key={product.id} className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                  <div className="flex items-center gap-3">
+                    {product.image_url && (
+                      <img 
+                        src={product.image_url} 
+                        alt={product.name}
+                        className="w-10 h-10 object-cover rounded"
+                      />
+                    )}
+                    <div>
+                      <p className="font-medium text-foreground">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {product.stock === 0 ? 'Sin stock' : `${product.stock} unidades restantes`}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={product.stock === 0 ? 'destructive' : 'secondary'}>
+                    {product.stock === 0 ? 'Agotado' : 'Stock Bajo'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

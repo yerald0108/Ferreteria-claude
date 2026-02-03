@@ -1,6 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface LowStockProduct {
+  id: string;
+  name: string;
+  stock: number;
+  image_url: string | null;
+}
+
 export interface AdminStats {
   totalSales: number;
   totalOrders: number;
@@ -10,6 +17,7 @@ export interface AdminStats {
   salesByDate: { date: string; total: number }[];
   topProducts: { name: string; quantity: number; revenue: number }[];
   ordersByStatus: { status: string; count: number }[];
+  lowStockProducts: LowStockProduct[];
 }
 
 export function useAdminStats() {
@@ -29,6 +37,17 @@ export function useAdminStats() {
         .select('*', { count: 'exact', head: true });
       
       if (productsError) throw productsError;
+
+      // Get low stock products (stock <= 10)
+      const { data: lowStock, error: lowStockError } = await supabase
+        .from('products')
+        .select('id, name, stock, image_url')
+        .eq('is_active', true)
+        .lte('stock', 10)
+        .order('stock', { ascending: true })
+        .limit(10);
+      
+      if (lowStockError) throw lowStockError;
 
       // Get users count from profiles
       const { count: usersCount, error: usersError } = await supabase
@@ -60,6 +79,7 @@ export function useAdminStats() {
         salesByDate,
         topProducts,
         ordersByStatus,
+        lowStockProducts: lowStock || [],
       };
     },
   });

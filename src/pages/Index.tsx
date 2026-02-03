@@ -7,8 +7,6 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { useProducts, useCategories } from '@/hooks/useProducts';
-import { TestimonialsSection } from '@/components/TestimonialsSection';
-
 
 const Index = () => {
   const { data: products, isLoading: productsLoading } = useProducts();
@@ -105,8 +103,6 @@ const Index = () => {
             )}
           </div>
         </section>
-
-        <TestimonialsSection />
         
         {/* CTA Section */}
         <section className="py-20 bg-primary">

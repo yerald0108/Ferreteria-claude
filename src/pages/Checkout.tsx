@@ -5,7 +5,7 @@ import { useCartStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useCreateOrder } from '@/hooks/useOrders';
 import { useUserProfile, useUpdateProfile } from '@/hooks/useProfile';
@@ -16,6 +16,8 @@ import { StepPayment } from '@/components/checkout/StepPayment';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { checkStockAvailability, getUnavailableItems, StockCheckResult } from '@/hooks/useStockValidation';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const STEPS = [
   { number: 1, title: 'Contacto', description: 'Tus datos' },
@@ -33,6 +35,8 @@ const Checkout = () => {
   
   const [currentStep, setCurrentStep] = useState(1);
   const [saveToProfile, setSaveToProfile] = useState(true);
+  const [stockCheckPending, setStockCheckPending] = useState(false);
+  const [stockIssues, setStockIssues] = useState<StockCheckResult[]>([]);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -143,7 +147,21 @@ const Checkout = () => {
       return;
     }
 
+    // Check stock availability before creating order
+    setStockCheckPending(true);
+    setStockIssues([]);
+    
     try {
+      const { allAvailable, results } = await checkStockAvailability(items);
+      
+      if (!allAvailable) {
+        const unavailable = getUnavailableItems(results);
+        setStockIssues(unavailable);
+        toast.error('Algunos productos no tienen suficiente stock');
+        setStockCheckPending(false);
+        return;
+      }
+
       const order = {
         user_id: user.id,
         total_amount: getTotalPrice(),
@@ -187,6 +205,8 @@ const Checkout = () => {
       navigate(`/pedido/${orderData.id}`);
     } catch (error: any) {
       toast.error(error.message || 'Error al procesar el pedido');
+    } finally {
+      setStockCheckPending(false);
     }
   };
 
@@ -307,6 +327,23 @@ const Checkout = () => {
           
           <CheckoutProgress currentStep={currentStep} steps={STEPS} />
           
+          {stockIssues.length > 0 && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Problemas de stock</AlertTitle>
+              <AlertDescription>
+                <ul className="mt-2 space-y-1">
+                  {stockIssues.map((issue) => (
+                    <li key={issue.product_id}>
+                      <strong>{issue.product_name}</strong>: Solicitaste {issue.requested}, solo hay {issue.available} disponibles
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-sm">Por favor ajusta las cantidades en tu carrito.</p>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               {renderStep()}
@@ -321,7 +358,7 @@ const Checkout = () => {
                 onNext={handleNext}
                 onBack={handleBack}
                 onSubmit={handleSubmit}
-                isSubmitting={createOrder.isPending}
+                isSubmitting={createOrder.isPending || stockCheckPending}
                 canProceed={canProceedToNext()}
               />
             </div>

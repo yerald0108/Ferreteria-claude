@@ -1,4 +1,5 @@
 import { Plus, ShoppingCart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,22 +28,30 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-      <div className="relative aspect-square overflow-hidden bg-muted">
-        <img
-          src={product.image}
-          alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-        {product.stock < 10 && (
+      <Link to={`/producto/${product.id}`}>
+        <div className="relative aspect-square overflow-hidden bg-muted">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        {product.stock === 0 ? (
+          <Badge variant="destructive" className="absolute top-2 right-2">
+            Agotado
+          </Badge>
+        ) : product.stock < 10 ? (
           <Badge variant="destructive" className="absolute top-2 right-2">
             ¡Últimas unidades!
           </Badge>
-        )}
-      </div>
+        ) : null}
+        </div>
+      </Link>
       <CardContent className="p-4">
-        <h3 className="font-semibold text-foreground line-clamp-2 min-h-[2.5rem]">
-          {product.name}
-        </h3>
+        <Link to={`/producto/${product.id}`}>
+          <h3 className="font-semibold text-foreground line-clamp-2 min-h-[2.5rem] hover:text-primary transition-colors">
+            {product.name}
+          </h3>
+        </Link>
         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
           {product.description}
         </p>
@@ -60,9 +69,16 @@ export function ProductCard({ product }: ProductCardProps) {
           onClick={handleAddToCart}
           className="w-full gap-2"
           disabled={product.stock === 0}
+          variant={product.stock === 0 ? "secondary" : "default"}
         >
-          <ShoppingCart className="h-4 w-4" />
-          Añadir al carrito
+          {product.stock === 0 ? (
+            <>Agotado</>
+          ) : (
+            <>
+              <ShoppingCart className="h-4 w-4" />
+              Añadir al carrito
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>

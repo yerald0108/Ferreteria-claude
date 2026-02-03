@@ -208,6 +208,44 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          product_id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -234,6 +272,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_stock_availability: {
+        Args: { p_items: Json }
+        Returns: {
+          available: number
+          is_available: boolean
+          product_id: string
+          product_name: string
+          requested: number
+        }[]
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       user_owns_order: {
         Args: { _order_id: string; _user_id: string }
