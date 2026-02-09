@@ -40,11 +40,12 @@ export function AdminOrders() {
     }).format(price);
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
+  const handleStatusChange = async (orderId: string, newStatus: string, currentStatus: string) => {
     try {
       await updateStatus.mutateAsync({ 
         id: orderId, 
-        status: newStatus as OrderWithProfile['status']
+        status: newStatus as OrderWithProfile['status'],
+        previousStatus: currentStatus as OrderWithProfile['status'],
       });
       toast.success('Estado actualizado correctamente');
     } catch (error: any) {
@@ -108,7 +109,7 @@ export function AdminOrders() {
                 <div className="flex items-center gap-2">
                   <Select 
                     value={order.status} 
-                    onValueChange={(value) => handleStatusChange(order.id, value)}
+                    onValueChange={(value) => handleStatusChange(order.id, value, order.status)}
                   >
                     <SelectTrigger className="w-40">
                       <SelectValue />

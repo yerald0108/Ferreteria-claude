@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Package, Calendar, MapPin, CreditCard, Eye, ShoppingBag } from 'lucide-react';
+import { OrderTimeline } from '@/components/OrderTimeline';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -100,7 +101,8 @@ const MyOrders = () => {
                     </CardHeader>
                     
                     <CardContent className="pt-4">
-                      <div className="grid gap-3 text-sm">
+                      <OrderTimeline status={order.status} />
+                      <div className="grid gap-3 text-sm mt-4">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Calendar className="h-4 w-4" />
                           <span>{formatDate(order.created_at)}</span>

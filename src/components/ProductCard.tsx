@@ -1,10 +1,13 @@
-import { Plus, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Product, useCartStore } from '@/lib/store';
 import { toast } from 'sonner';
+import { StarRating } from '@/components/reviews/StarRating';
+import { useProductRating } from '@/hooks/useReviews';
+import { FavoriteButton } from '@/components/FavoriteButton';
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +15,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const { averageRating, totalReviews } = useProductRating(product.id);
 
   const handleAddToCart = () => {
     addItem(product);
@@ -35,15 +39,16 @@ export function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-        {product.stock === 0 ? (
-          <Badge variant="destructive" className="absolute top-2 right-2">
-            Agotado
-          </Badge>
-        ) : product.stock < 10 ? (
-          <Badge variant="destructive" className="absolute top-2 right-2">
-            ¡Últimas unidades!
-          </Badge>
-        ) : null}
+          <FavoriteButton productId={product.id} variant="overlay" />
+          {product.stock === 0 ? (
+            <Badge variant="destructive" className="absolute top-2 right-2">
+              Agotado
+            </Badge>
+          ) : product.stock < 10 ? (
+            <Badge variant="destructive" className="absolute top-2 right-2">
+              ¡Últimas unidades!
+            </Badge>
+          ) : null}
         </div>
       </Link>
       <CardContent className="p-4">
@@ -52,6 +57,11 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.name}
           </h3>
         </Link>
+        {totalReviews > 0 && (
+          <div className="mt-1">
+            <StarRating rating={averageRating} size="sm" showValue totalReviews={totalReviews} />
+          </div>
+        )}
         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
           {product.description}
         </p>

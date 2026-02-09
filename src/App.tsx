@@ -17,6 +17,9 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import MyOrders from "./pages/MyOrders";
 import Profile from "./pages/Profile";
+import Favorites from "./pages/Favorites";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +43,9 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/mis-pedidos" element={<MyOrders />} />
             <Route path="/perfil" element={<Profile />} />
+            <Route path="/favoritos" element={<Favorites />} />
+            <Route path="/recuperar-contrasena" element={<ForgotPassword />} />
+            <Route path="/restablecer-contrasena" element={<ResetPassword />} />
             <Route path="/nosotros" element={<About />} />
             <Route path="/contacto" element={<Contact />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

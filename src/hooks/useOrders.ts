@@ -119,7 +119,7 @@ export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: Tables<'orders'>['status'] }) => {
+    mutationFn: async ({ id, status, previousStatus }: { id: string; status: Tables<'orders'>['status']; previousStatus?: Tables<'orders'>['status'] }) => {
       const { data, error } = await supabase
         .from('orders')
         .update({ status })
@@ -128,6 +128,22 @@ export function useUpdateOrderStatus() {
         .single();
       
       if (error) throw error;
+      
+      // Send status update email notification (fire and forget)
+      if (previousStatus && previousStatus !== status) {
+        supabase.functions.invoke('send-order-status-update', {
+          body: {
+            orderId: id,
+            newStatus: status,
+            previousStatus: previousStatus,
+          },
+        }).then(() => {
+          console.log('Order status update email sent');
+        }).catch((emailError) => {
+          console.error('Error sending status update email:', emailError);
+        });
+      }
+      
       return data;
     },
     onSuccess: () => {

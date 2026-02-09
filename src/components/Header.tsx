@@ -1,4 +1,4 @@
-import { ShoppingCart, User, Menu, Wrench, X, LogOut, Shield, Package, UserCircle } from 'lucide-react';
+import { ShoppingCart, User, Menu, Wrench, X, LogOut, Shield, Package, UserCircle, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -98,6 +98,12 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/favoritos" className="flex items-center gap-2">
+                      <Heart className="h-4 w-4" />
+                      Mis Favoritos
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/mis-pedidos" className="flex items-center gap-2">
                       <Package className="h-4 w-4" />
                       Mis Pedidos
@@ -166,6 +172,14 @@ export function Header() {
                   >
                     <UserCircle className="h-4 w-4" />
                     Mi Perfil
+                  </Link>
+                  <Link
+                    to="/favoritos"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="px-4 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:bg-muted flex items-center gap-2"
+                  >
+                    <Heart className="h-4 w-4" />
+                    Mis Favoritos
                   </Link>
                   <Link
                     to="/mis-pedidos"

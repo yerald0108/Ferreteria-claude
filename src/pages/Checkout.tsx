@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { checkStockAvailability, getUnavailableItems, StockCheckResult } from '@/hooks/useStockValidation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
 
 const STEPS = [
   { number: 1, title: 'Contacto', description: 'Tus datos' },
@@ -181,6 +182,27 @@ const Checkout = () => {
       }));
 
       const orderData = await createOrder.mutateAsync({ order, items: orderItems });
+
+      // Send order confirmation email (fire and forget)
+      try {
+        await supabase.functions.invoke('send-order-confirmation', {
+          body: {
+            customerEmail: formData.email || user.email,
+            customerName: formData.fullName,
+            orderId: orderData.id,
+            orderItems: orderItems,
+            totalAmount: getTotalPrice(),
+            deliveryAddress: formData.address,
+            municipality: formData.municipality,
+            deliveryTime: formData.deliveryTime,
+            paymentMethod: formData.paymentMethod,
+          },
+        });
+        console.log('Order confirmation email sent');
+      } catch (emailError) {
+        // Don't fail the order if email fails
+        console.error('Error sending confirmation email:', emailError);
+      }
 
       // Save profile data if checkbox is checked
       if (saveToProfile) {

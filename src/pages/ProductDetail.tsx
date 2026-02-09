@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingCart, ArrowLeft, Loader2, Package, MessageSquare } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, Package, MessageSquare } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ProductDetailSkeleton } from '@/components/skeletons/ProductDetailSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCartStore } from '@/lib/store';
@@ -14,6 +16,7 @@ import { toast } from 'sonner';
 import { StarRating } from '@/components/reviews/StarRating';
 import { ReviewForm } from '@/components/reviews/ReviewForm';
 import { ReviewList } from '@/components/reviews/ReviewList';
+import { RelatedProducts } from '@/components/RelatedProducts';
 import { useProductReviews, useUserReview, useProductRating, useHasPurchased } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -70,11 +73,7 @@ const ProductDetail = () => {
   };
 
   if (productLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <ProductDetailSkeleton />;
   }
 
   if (!product) {
@@ -265,8 +264,14 @@ const ProductDetail = () => {
 
             {/* Reviews List */}
             {reviewsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <div className="space-y-4">
+                {[1, 2].map(i => (
+                  <div key={i} className="p-4 border rounded-lg space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                ))}
               </div>
             ) : (
               <ReviewList
@@ -276,6 +281,12 @@ const ProductDetail = () => {
               />
             )}
           </div>
+
+          {/* Related Products */}
+          <RelatedProducts 
+            currentProductId={product.id} 
+            categoryId={product.category_id} 
+          />
         </div>
       </main>
       
